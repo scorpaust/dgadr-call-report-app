@@ -1,0 +1,583 @@
+{
+  "GeralM111": {
+    "assunto": "Aposentações, Contagens de Tempo e Assiduidade",
+    "assunto_curto": "Aposentações, Contagens de Tempo e Assiduidade",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4111
+  },
+  "GeralM112": {
+    "assunto": "Concursos de Pessoal",
+    "assunto_curto": "Concursos de Pessoal",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4112
+  },
+  "GeralM113": {
+    "assunto": "Mobilidades",
+    "assunto_curto": "Mobilidades",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4113
+  },
+  "GeralM114": {
+    "assunto": "SIADAP",
+    "assunto_curto": "SIADAP",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4114
+  },
+  "GeralM115": {
+    "assunto": "Declarações de Tempo/Serviço/Vínculo",
+    "assunto_curto": "Declarações de Tempo/Serviço/Vínculo",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4115
+  },
+  "GeralM116": {
+    "assunto": "Expediente",
+    "assunto_curto": "Expediente",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4116
+  },
+  "GeralM119": {
+    "assunto": "Atendimento por Operador — Secretariado da DSIGA — Divisão de Organização e Recursos Humanos",
+    "assunto_curto": "Secretariado DSIGA — Rec. Humanos",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Recursos Humanos",
+    "extensao": 4119
+  },
+  "GeralM121": {
+    "assunto": "Património, Aprovisionamento e Viaturas",
+    "assunto_curto": "Património, Aprovisionamento e Viaturas",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4121
+  },
+  "GeralM122": {
+    "assunto": "Faturação",
+    "assunto_curto": "Faturação",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4122
+  },
+  "GeralM123": {
+    "assunto": "Tesouraria",
+    "assunto_curto": "Tesouraria",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4123
+  },
+  "GeralM124": {
+    "assunto": "Projetos (Área Financeira)",
+    "assunto_curto": "Projetos (Área Financeira)",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4124
+  },
+  "GeralM125": {
+    "assunto": "Contabilidade",
+    "assunto_curto": "Contabilidade",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4125
+  },
+  "GeralM126": {
+    "assunto": "Área Financeira (Geral)",
+    "assunto_curto": "Área Financeira (Geral)",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4126
+  },
+  "GeralM129": {
+    "assunto": "Atendimento por Operador — Secretariado da DSIGA — Divisão de Gestão Financeira",
+    "assunto_curto": "Secretariado DSIGA — Financeiro",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Financeiros",
+    "extensao": 4129
+  },
+  "GeralM131": {
+    "assunto": "Biblioteca e Arquivo",
+    "assunto_curto": "Biblioteca e Arquivo",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4131
+  },
+  "GeralM132": {
+    "assunto": "Site Institucional e Pedidos de Informação via Site",
+    "assunto_curto": "Site Institucional e Pedidos de Informação…",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4132
+  },
+  "GeralM133": {
+    "assunto": "Canal de Denúncia",
+    "assunto_curto": "Canal de Denúncia",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4133
+  },
+  "GeralM134": {
+    "assunto": "Instrumentos de Gestão da DGADR",
+    "assunto_curto": "Instrumentos de Gestão da DGADR",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4134
+  },
+  "GeralM135": {
+    "assunto": "Desenvolvimento Aplicacional e Infraestruturas da DGADR",
+    "assunto_curto": "Desenvolvimento Aplicacional e…",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4135
+  },
+  "GeralM139": {
+    "assunto": "Atendimento por Operador — Secretariado da DSIGA — Divisão de Planeamento e Gestão da Informação",
+    "assunto_curto": "Secretariado DSIGA — Planeamento",
+    "area": "Àrea Financeira, Recursos Humanos e Informação",
+    "servico": "Planeamento e Gestão da Informação",
+    "extensao": 4139
+  },
+  "GeralM211": {
+    "assunto": "Arrendamento Rural, Estruturação Fundiária, Fracionamento, Emparcelamento Simples",
+    "assunto_curto": "Arrendamento Rural, Estruturação Fundiária,…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4211
+  },
+  "GeralM212": {
+    "assunto": "Benefício Fiscal ao Gasóleo ou Gasóleo Agrícola",
+    "assunto_curto": "Benefício Fiscal ao Gasóleo ou Gasóleo Agrícola",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4212
+  },
+  "GeralM213": {
+    "assunto": "Programa Emparcelar para Ordenar",
+    "assunto_curto": "Programa Emparcelar para Ordenar",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4213
+  },
+  "GeralM214": {
+    "assunto": "Homologação de Tratores Agrícolas, Mecanização Agrária",
+    "assunto_curto": "Homologação de Tratores Agrícolas,…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4214
+  },
+  "GeralM215": {
+    "assunto": "Jovem Empresário Rural, Reconhecim.Técnicos Prod. Integrada, Proteção Integrada e Mpb, Estatuto de Agricultura Familiar",
+    "assunto_curto": "Jovem Empresário / Prod. Integrada / Agric. Familiar",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4215
+  },
+  "GeralM216": {
+    "assunto": "Matrículas de Tratores Usados (Ensaios)",
+    "assunto_curto": "Matrículas de Tratores Usados (Ensaios)",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4216
+  },
+  "GeralM219": {
+    "assunto": "Atendimento por Operador — Portaria",
+    "assunto_curto": "Atendimento por Operador — Portaria",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Apoio às explorações agrícolas",
+    "extensao": 4219
+  },
+  "GeralM221": {
+    "assunto": "Apoios Bio, Notificação Atividade Produtiva, POSEI",
+    "assunto_curto": "Apoios Bio, Notificação Atividade Produtiva,…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4221
+  },
+  "GeralM222": {
+    "assunto": "Produção Integrada (PRODI), Proteção Integrada",
+    "assunto_curto": "Produção Integrada (PRODI), Proteção Integrada",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4222
+  },
+  "GeralM223": {
+    "assunto": "Animais Biológicos",
+    "assunto_curto": "Animais Biológicos",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4223
+  },
+  "GeralM224": {
+    "assunto": "Dados Estatísticos Bio / Produção Biológica / TRACES / Cadastro",
+    "assunto_curto": "Dados Estatísticos Bio / Produção Biológica /…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4224
+  },
+  "GeralM225": {
+    "assunto": "Fertilizantes",
+    "assunto_curto": "Fertilizantes",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4225
+  },
+  "GeralM226": {
+    "assunto": "Sementes e Material de Propagação Vegetativa",
+    "assunto_curto": "Sementes e Material de Propagação Vegetativa",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4226
+  },
+  "GeralM229": {
+    "assunto": "Atendimento por Operador — Qualidade Agrária e Ambiente",
+    "assunto_curto": "Atendimento por Operador — Qualidade Agrária…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Da da Qualidade e Recursos Genéticos",
+    "extensao": 4229
+  },
+  "GeralM231": {
+    "assunto": "Águas Residuais, Qualidade da Água e Bagaço de Azeitona",
+    "assunto_curto": "Águas Residuais, Qualidade da Água e Bagaço…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4231
+  },
+  "GeralM232": {
+    "assunto": "Diretiva Nitratos, Promoção da Fertilização Orgânica",
+    "assunto_curto": "Diretiva Nitratos, Promoção da Fertilização…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4232
+  },
+  "GeralM233": {
+    "assunto": "Economia Circular, Efluentes Pecuários, ENEAPAI, NREAP (Licenciamento)",
+    "assunto_curto": "Economia Circular, Efluentes Pecuários,…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4233
+  },
+  "GeralM234": {
+    "assunto": "Bem-Estar Animal PEPAC, Eficiência Alimentar, Pastagens",
+    "assunto_curto": "Bem-Estar Animal PEPAC, Eficiência Alimentar,…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4234
+  },
+  "GeralM235": {
+    "assunto": "Resíduos",
+    "assunto_curto": "Resíduos",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4235
+  },
+  "GeralM236": {
+    "assunto": "Técnicos Reconhecidos de Lamas, Valorização Agrícola de Lamas",
+    "assunto_curto": "Técnicos Reconhecidos de Lamas, Valorização…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4236
+  },
+  "GeralM239": {
+    "assunto": "Atendimento por Operador — Qualidade e Ambiente Agrário",
+    "assunto_curto": "Atendimento por Operador — Qualidade e…",
+    "area": "Área de Promoção da Atividade Agrícola",
+    "servico": "Gestão de Recursos Naturais",
+    "extensao": 4239
+  },
+  "GeralM311": {
+    "assunto": "Projetos da Rede Rural PAC / Site da Rede Rural",
+    "assunto_curto": "Projetos da Rede Rural PAC / Site da Rede Rural",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4311
+  },
+  "GeralM312": {
+    "assunto": "Inovação / Bolsa de Iniciativas | Membros de Rede",
+    "assunto_curto": "Inovação / Bolsa de Iniciativas | Membros de…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4312
+  },
+  "GeralM313": {
+    "assunto": "Relacionados com AKIS",
+    "assunto_curto": "Relacionados com AKIS",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4313
+  },
+  "GeralM314": {
+    "assunto": "Circuitos Curtos de Comercialização / Alimentação Sustentável",
+    "assunto_curto": "Circuitos Curtos de Comercialização /…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4314
+  },
+  "GeralM315": {
+    "assunto": "Leader",
+    "assunto_curto": "Leader",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4315
+  },
+  "GeralM316": {
+    "assunto": "Plataforma da Parceria Portuguesa Para o Solo",
+    "assunto_curto": "Plataforma da Parceria Portuguesa Para o Solo",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4316
+  },
+  "GeralM319": {
+    "assunto": "Atendimento por Operador — Rede Rural PAC",
+    "assunto_curto": "Atendimento por Operador — Rede Rural PAC",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "A Rede Nacional PAC/AKIS",
+    "extensao": 4319
+  },
+  "GeralM321": {
+    "assunto": "Entidade Nacional da RAN",
+    "assunto_curto": "Entidade Nacional da RAN",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4321
+  },
+  "GeralM322": {
+    "assunto": "Estudos e Avaliação de Impacte Ambiental (AIA)",
+    "assunto_curto": "Estudos e Avaliação de Impacte Ambiental (AIA)",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4322
+  },
+  "GeralM323": {
+    "assunto": "Pareceres ao abrigo do RJOAH",
+    "assunto_curto": "Pareceres ao abrigo do RJOAH",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4323
+  },
+  "GeralM324": {
+    "assunto": "Pareceres a Projetos de Arborização e Rearborização",
+    "assunto_curto": "Pareceres a Projetos de Arborização e…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4324
+  },
+  "GeralM325": {
+    "assunto": "Solos / Parceria Portuguesa Para o Solo",
+    "assunto_curto": "Solos / Parceria Portuguesa Para o Solo",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4325
+  },
+  "GeralM326": {
+    "assunto": "Alvará de Fruição / Património Ex-JCI / Baldios e Herdades",
+    "assunto_curto": "Alvará de Fruição / Património Ex-JCI /…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4326
+  },
+  "GeralM329": {
+    "assunto": "Atendimento por Operador — Secretariado da DSTAR — Divisão de Ordenamento do Espaço Rural",
+    "assunto_curto": "Secretariado DSTAR — Ordenamento",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Do Ordenamento do Espaço Rural",
+    "extensao": 4329
+  },
+  "GeralM331": {
+    "assunto": "Formação Profissional",
+    "assunto_curto": "Formação Profissional",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4331
+  },
+  "GeralM332": {
+    "assunto": "Agrupamento de Produtores Multiprodutos / Associativismo Agrícola",
+    "assunto_curto": "Agrupamento de Produtores Multiprodutos /…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4332
+  },
+  "GeralM333": {
+    "assunto": "Programa Operacional Da Apicultura (PNASA)",
+    "assunto_curto": "Programa Operacional Da Apicultura (PNASA)",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4333
+  },
+  "GeralM334": {
+    "assunto": "Programa Operacional Das Frutas & Hortícolas",
+    "assunto_curto": "Programa Operacional Das Frutas & Hortícolas",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4334
+  },
+  "GeralM335": {
+    "assunto": "SAAF - Serviço de Aconselhamento Agrícola e Florestal",
+    "assunto_curto": "SAAF - Serviço de Aconselhamento Agrícola e…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4335
+  },
+  "GeralM336": {
+    "assunto": "Artesanato / Turismo no Espaço Rural / Empreendedorismo Rural",
+    "assunto_curto": "Artesanato / Turismo no Espaço Rural /…",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4336
+  },
+  "GeralM339": {
+    "assunto": "Atendimento por Operador — Secretariado da DSTAR — Divisão de Ordenamento do Espaço Rural",
+    "assunto_curto": "Secretariado DSTAR — Ordenamento",
+    "area": "Área do Território e Agentes Rurais",
+    "servico": "Da Diversificação da Atividade Agrícola, Formação e Associativismo",
+    "extensao": 4339
+  },
+  "GeralM411": {
+    "assunto": "Aproveitamentos Hidroagrícolas (PROJETO)",
+    "assunto_curto": "Aproveitamentos Hidroagrícolas (PROJETO)",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas Hidráulicas",
+    "extensao": 4411
+  },
+  "GeralM412": {
+    "assunto": "Uso Eficiente da Água / Sistema de Reconhecimento de Regantes",
+    "assunto_curto": "Uso Eficiente da Água / Sistema de…",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas Hidráulicas",
+    "extensao": 4412
+  },
+  "GeralM419": {
+    "assunto": "Atendimento por Operador — Secretariado da DSR — Divisão de Infraestruturas Hidráulicas",
+    "assunto_curto": "Secretariado DSR — Infraest. Hidráulicas",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas Hidráulicas",
+    "extensao": 4419
+  },
+  "GeralM421": {
+    "assunto": "Aproveitamentos Hidroagrícolas (OBRA)",
+    "assunto_curto": "Aproveitamentos Hidroagrícolas (OBRA)",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas de Engenharia Rural",
+    "extensao": 4421
+  },
+  "GeralM422": {
+    "assunto": "Aproveitamentos Hidroagrícolas (EXPROPRIAÇÕES)",
+    "assunto_curto": "Aproveitamentos Hidroagrícolas (EXPROPRIAÇÕES)",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas de Engenharia Rural",
+    "extensao": 4422
+  },
+  "GeralM423": {
+    "assunto": "Aproveitamentos Hidroagrícolas (INDEMNIZAÇÕES)",
+    "assunto_curto": "Aproveitamentos Hidroagrícolas (INDEMNIZAÇÕES)",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas de Engenharia Rural",
+    "extensao": 4423
+  },
+  "GeralM424": {
+    "assunto": "Segurança de Barragens",
+    "assunto_curto": "Segurança de Barragens",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas de Engenharia Rural",
+    "extensao": 4424
+  },
+  "GeralM429": {
+    "assunto": "Atendimento por Operador — Secretariado da DSR — Divisão de Engenharia Rural (Obras Hidroagrícolas)",
+    "assunto_curto": "Secretariado DSR — Engenharia Rural",
+    "area": "Área do Regadio",
+    "servico": "Infraestruturas de Engenharia Rural",
+    "extensao": 4429
+  },
+  "GeralM431": {
+    "assunto": "Aproveitamentos Hidroagrícolas (ECONOMIA/FINANÇAS)",
+    "assunto_curto": "Aproveitamentos Hidroagrícolas…",
+    "area": "Área do Regadio",
+    "servico": "Regadio",
+    "extensao": 4431
+  },
+  "GeralM432": {
+    "assunto": "Campanha de Rega",
+    "assunto_curto": "Campanha de Rega",
+    "area": "Área do Regadio",
+    "servico": "Regadio",
+    "extensao": 4432
+  },
+  "GeralM439": {
+    "assunto": "Atendimento por Operador — Secretariado da DSR — Divisão do Regadio",
+    "assunto_curto": "Secretariado DSR — Regadio",
+    "area": "Área do Regadio",
+    "servico": "Regadio",
+    "extensao": 4439
+  },
+  "GeralM501": {
+    "assunto": "Benefício Fiscal ao Gasóleo Agrícola",
+    "assunto_curto": "Benefício Fiscal ao Gasóleo Agrícola",
+    "area": "Ajuda de Assuntos",
+    "servico": "Benefício Fiscal ao Gasóleo ou Gasóleo Agrícola",
+    "extensao": 4501
+  },
+  "GeralM502": {
+    "assunto": "Emparcelar para Ordenar",
+    "assunto_curto": "Emparcelar para Ordenar",
+    "area": "Ajuda de Assuntos",
+    "servico": "Emparcelar para Ordenar",
+    "extensao": 4502
+  },
+  "GeralM503": {
+    "assunto": "Homologações de tratores agrícolas",
+    "assunto_curto": "Homologações de tratores agrícolas",
+    "area": "Ajuda de Assuntos",
+    "servico": "Homologações de tratores agrícolas",
+    "extensao": 4503
+  },
+  "GeralM504": {
+    "assunto": "Pedidos de Retroatividade (Bio)",
+    "assunto_curto": "Pedidos de Retroatividade (Bio)",
+    "area": "Ajuda de Assuntos",
+    "servico": "Pedidos de Retroatividade (Bio)",
+    "extensao": 4504
+  },
+  "GeralM505": {
+    "assunto": "NREAP",
+    "assunto_curto": "NREAP",
+    "area": "Ajuda de Assuntos",
+    "servico": "NREAP",
+    "extensao": 4505
+  },
+  "GeralM506": {
+    "assunto": "Rede Rural PAC",
+    "assunto_curto": "Rede Rural PAC",
+    "area": "Ajuda de Assuntos",
+    "servico": "Rede Rural PAC",
+    "extensao": 4506
+  },
+  "GeralM507": {
+    "assunto": "RAN — Reserva Agrícola Nacional",
+    "assunto_curto": "RAN — Reserva Agrícola Nacional",
+    "area": "Ajuda de Assuntos",
+    "servico": "RAN - Reserva Agrícola Nacional",
+    "extensao": 4507
+  },
+  "GeralM508": {
+    "assunto": "Bem Estar Animal - PEPAC",
+    "assunto_curto": "Bem Estar Animal - PEPAC",
+    "area": "Ajuda de Assuntos",
+    "servico": "Bem Estar Animal - PEPAC",
+    "extensao": 4508
+  },
+  "GeralM509": {
+    "assunto": "Atendimento por Operador — Portaria",
+    "assunto_curto": "Atendimento por Operador — Portaria",
+    "area": "Ajuda de Assuntos",
+    "servico": "Bem Estar Animal - PEPAC",
+    "extensao": 4509
+  },
+  "GeralM909": {
+    "assunto": "Atendimento por Operador — Portaria",
+    "assunto_curto": "Atendimento por Operador — Portaria",
+    "area": "Ajuda de Assuntos",
+    "servico": "Bem Estar Animal - PEPAC",
+    "extensao": 4909
+  }
+}
