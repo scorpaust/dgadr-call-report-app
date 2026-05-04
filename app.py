@@ -4,7 +4,7 @@ Gerador Automático de Relatório de Atendimento Telefónico
 - Usa template Word com header/footer institucionais
 - Gera relatório profissional Word com análise por IA
 """
- 
+
 import streamlit as st
 import pandas as pd
 import matplotlib
@@ -14,7 +14,7 @@ import matplotlib.patches as mpatches
 import numpy as np
 import io, re, json, os
 from datetime import datetime
- 
+
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor, Cm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -22,13 +22,13 @@ from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 from docx.enum.table import WD_ALIGN_VERTICAL
- 
+
 import anthropic
 try:
     from config import ANTHROPIC_API_KEY as _CFG_KEY, ANTHROPIC_MODEL as _CFG_MODEL, MAX_TOKENS as _CFG_TOKENS
 except ImportError:
     _CFG_KEY = ""; _CFG_MODEL = "claude-opus-4-5"; _CFG_TOKENS = 3200
- 
+
 def _resolve_api_key():
     """Priority: st.secrets → config.py → env var → empty (manual input)."""
     # 1. Streamlit Cloud secrets (set in app Settings → Secrets)
@@ -43,7 +43,7 @@ def _resolve_api_key():
         return _CFG_KEY
     # 3. Environment variable
     return os.environ.get("ANTHROPIC_API_KEY", "")
- 
+
 # ──────────────────────────────────────────────
 #  MAPPING: GeralMXXX → assunto legível
 # ──────────────────────────────────────────────
@@ -58,29 +58,29 @@ def load_mapping(path=None):
             with open(p, encoding="utf-8") as f:
                 return json.load(f)
     return {}
- 
+
 _MAPPING = load_mapping()
- 
+
 def label(group: str, short=False) -> str:
     info = _MAPPING.get(group, {})
     if not info:
         return group
     key = "assunto_curto" if short else "assunto"
     return info.get(key) or info.get("assunto") or group
- 
+
 def area(group: str) -> str:
     return _MAPPING.get(group, {}).get("area", "")
- 
+
 def servico(group: str) -> str:
     return _MAPPING.get(group, {}).get("servico", "")
- 
+
 # ──────────────────────────────────────────────
 #  PATHS
 # ──────────────────────────────────────────────
 _DIR = os.path.dirname(os.path.abspath(__file__))
 HEADER_IMG = os.path.join(_DIR, "template_header.png")
 FOOTER_IMG = os.path.join(_DIR, "template_footer.png")
- 
+
 # ──────────────────────────────────────────────
 #  COLOUR PALETTE
 # ──────────────────────────────────────────────
@@ -95,7 +95,7 @@ C_TEXT   = RGBColor(0x2C, 0x3E, 0x50)
 C_GREY   = RGBColor(0x7F, 0x8C, 0x8D)
 C_WHITE  = RGBColor(0xFF, 0xFF, 0xFF)
 C_LBLUE  = RGBColor(0xF0, 0xF5, 0xFA)
- 
+
 HEX_NAVY  = "1B3A5C"
 HEX_BLUE  = "4A90D9"
 HEX_TEAL  = "2E86AB"
@@ -104,7 +104,7 @@ HEX_GREEN = "27AE60"
 HEX_ORANGE= "F39C12"
 HEX_LGREY = "F0F5FA"
 HEX_WHITE = "FFFFFF"
- 
+
 # ──────────────────────────────────────────────
 #  MERGE PAIRS  (Ajuda de Assuntos + homónimos)
 # ──────────────────────────────────────────────
@@ -135,8 +135,8 @@ _MERGE_LOOKUP = {}
 for _mp in MERGE_PAIRS:
     for _g in _mp["groups"]:
         _MERGE_LOOKUP[_g] = _mp
- 
- 
+
+
 def _hms_to_sec(s: str) -> int:
     try:
         parts = [int(x) for x in str(s).split(":")]
@@ -147,12 +147,12 @@ def _hms_to_sec(s: str) -> int:
     except Exception:
         pass
     return 0
- 
+
 def _sec_to_hms(total: int) -> str:
     h = total // 3600; m = (total % 3600)//60; s = total % 60
     return f"{h}:{m:02d}:{s:02d}"
- 
- 
+
+
 def consolidate_groups(groups: list) -> list:
     merged_buckets: dict = {}
     standalone: list = []
@@ -190,15 +190,15 @@ def consolidate_groups(groups: list) -> list:
         })
     result.sort(key=lambda x: x["priority_index"], reverse=True)
     return result
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  EXCEL PARSING — ficheiro principal
 # ──────────────────────────────────────────────
 def parse_excel(file):
     summary = {}
     groups  = []
- 
+
     df_s = pd.read_excel(file, sheet_name="Summary", header=None)
     row_dates = df_s.iloc[2]
     row_data  = df_s.iloc[4]
@@ -208,7 +208,7 @@ def parse_excel(file):
     except Exception:
         start_date = str(row_dates[0])[:10]
         end_date   = str(row_dates[1])[:10]
- 
+
     summary = {
         "start_date": start_date, "end_date": end_date,
         "total_presented": int(row_data[0]) if pd.notna(row_data[0]) else 0,
@@ -219,7 +219,7 @@ def parse_excel(file):
         "total_talking":  str(row_data[7]) if pd.notna(row_data[7]) else "N/D",
         "avg_talking":    str(row_data[8]) if pd.notna(row_data[8]) else "N/D",
     }
- 
+
     df_d = pd.read_excel(file, sheet_name="NO SUB GROUP", header=None)
     for i in range(3, len(df_d)):
         row = df_d.iloc[i]
@@ -244,8 +244,8 @@ def parse_excel(file):
         })
     groups = consolidate_groups(groups)
     return summary, groups
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  EXCEL PARSING — ficheiros de período (manhã/tarde)
 # ──────────────────────────────────────────────
@@ -291,8 +291,8 @@ def parse_excel_period(file, period_label: str) -> dict:
             "response_rate": round(pct*100, 1), "period": period_label,
         }
     return result
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  CHART GENERATION
 # ──────────────────────────────────────────────
@@ -302,17 +302,17 @@ TEAL_MPL  = "#2E86AB"
 RED_MPL   = "#E84855"
 GREEN_MPL = "#27AE60"
 AMBER_MPL = "#F39C12"
- 
+
 def _fig_to_bytes(fig):
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=160, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     return buf.getvalue()
- 
- 
+
+
 def make_charts(summary, groups):
     charts = []
- 
+
     # 1 ── Pie: answered vs missed ──
     fig, ax = plt.subplots(figsize=(5,5), facecolor="white")
     sizes  = [summary["total_answered"], summary["total_missed"]]
@@ -330,7 +330,7 @@ def make_charts(summary, groups):
     ax.set_title("Distribuição Global de Chamadas", fontsize=13,
                  fontweight="bold", color=NAVY_MPL, pad=14)
     charts.append(_fig_to_bytes(fig))
- 
+
     # 2 ── Bar: top-15 by volume ──
     top15 = sorted(groups, key=lambda x: x["presented"], reverse=True)[:15]
     names = [g["label_short"] for g in top15]
@@ -350,7 +350,7 @@ def make_charts(summary, groups):
     ax.set_facecolor("white"); ax.yaxis.grid(True, linestyle="--", alpha=0.4)
     ax.set_axisbelow(True)
     charts.append(_fig_to_bytes(fig))
- 
+
     # 3 ── Horizontal bar: top-10 priority index ──
     top10p  = sorted(groups, key=lambda x: x["priority_index"], reverse=True)[:10]
     pnames  = [g["label_short"] for g in top10p]
@@ -370,7 +370,7 @@ def make_charts(summary, groups):
         ax.text(bar.get_width()+0.5, bar.get_y()+bar.get_height()/2,
                 f"{val:.1f}", va="center", fontsize=9, color="#2C3E50")
     charts.append(_fig_to_bytes(fig))
- 
+
     # 4 ── Histogram: response rate distribution ──
     rates = [g["response_rate"] for g in groups]
     bins  = [0, 20, 40, 60, 80, 100]
@@ -391,10 +391,10 @@ def make_charts(summary, groups):
     ax.set_yticks(range(0, max_y+2))
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda v,_: str(int(v))))
     charts.append(_fig_to_bytes(fig))
- 
+
     return charts
- 
- 
+
+
 def make_period_chart(top5_groups, period_m: dict, period_t: dict):
     """
     Figura 5 — Top 5 grupos críticos: chamadas perdidas manhã vs tarde.
@@ -405,11 +405,11 @@ def make_period_chart(top5_groups, period_m: dict, period_t: dict):
     missed_t = [period_t.get(g["group"], {}).get("missed", 0) for g in top5_groups]
     ans_m    = [period_m.get(g["group"], {}).get("answered", 0) for g in top5_groups]
     ans_t    = [period_t.get(g["group"], {}).get("answered", 0) for g in top5_groups]
- 
+
     y = np.arange(len(names))
     height = 0.32
     fig, axes = plt.subplots(1, 2, figsize=(13, 4.5), facecolor="white")
- 
+
     # Left subplot — Chamadas Perdidas
     ax = axes[0]
     ax.barh(y + height/2, missed_m, height, label="Manhã",  color=AMBER_MPL, linewidth=0)
@@ -424,7 +424,7 @@ def make_period_chart(top5_groups, period_m: dict, period_t: dict):
     for i, (vm, vt) in enumerate(zip(missed_m, missed_t)):
         if vm: ax.text(vm+0.1, i+height/2, str(vm), va="center", fontsize=8.5, color="#2C3E50")
         if vt: ax.text(vt+0.1, i-height/2, str(vt), va="center", fontsize=8.5, color="#2C3E50")
- 
+
     # Right subplot — Taxa de Resposta
     ax2 = axes[1]
     rate_m = [period_m.get(g["group"], {}).get("response_rate", 0) for g in top5_groups]
@@ -442,31 +442,31 @@ def make_period_chart(top5_groups, period_m: dict, period_t: dict):
     for i, (vm, vt) in enumerate(zip(rate_m, rate_t)):
         if vm: ax2.text(vm+0.5, i+height/2, f"{vm:.0f}%", va="center", fontsize=8.5, color="#2C3E50")
         if vt: ax2.text(vt+0.5, i-height/2, f"{vt:.0f}%", va="center", fontsize=8.5, color="#2C3E50")
- 
+
     patch_m = mpatches.Patch(color=AMBER_MPL, label="Manhã")
     patch_t = mpatches.Patch(color=NAVY_MPL,  label="Tarde")
     fig.legend(handles=[patch_m, patch_t], loc="lower center", ncol=2,
                fontsize=10, framealpha=0, bbox_to_anchor=(0.5, -0.02))
- 
+
     fig.suptitle("Top 5 Grupos Críticos — Análise Manhã vs. Tarde",
                  fontsize=13, fontweight="bold", color=NAVY_MPL, y=1.02)
     plt.tight_layout()
     return _fig_to_bytes(fig)
- 
- 
+
+
 def make_quartile_chart(groups):
     """
     Figura de quartis — apenas boxplot horizontal com anotações Q1/Mediana/Q3.
     """
     rates_all = [g["response_rate"] for g in groups]
- 
+
     q1  = np.percentile(rates_all, 25)
     med = np.percentile(rates_all, 50)
     q3  = np.percentile(rates_all, 75)
     iqr = q3 - q1
- 
+
     fig, ax = plt.subplots(figsize=(10, 4), facecolor="white")
- 
+
     ax.boxplot(rates_all, vert=False, patch_artist=True, widths=0.5,
                medianprops={"color": "#" + HEX_RED, "linewidth": 2.8},
                boxprops={"facecolor": "#D6EAF8", "linewidth": 1.5,
@@ -475,12 +475,12 @@ def make_quartile_chart(groups):
                capprops={"linewidth": 2, "color": NAVY_MPL},
                flierprops={"marker": "o", "markerfacecolor": RED_MPL,
                            "markeredgecolor": RED_MPL, "markersize": 6})
- 
+
     # Jitter strip of individual data points
     jitter = np.random.RandomState(42).uniform(-0.18, 0.18, len(rates_all))
     ax.scatter(rates_all, [1 + j for j in jitter],
                color=TEAL_MPL, alpha=0.55, s=28, zorder=5)
- 
+
     # Annotations above the box
     for val, lbl, col in [
         (q1,  f"Q1 = {q1:.1f}%",      NAVY_MPL),
@@ -493,13 +493,13 @@ def make_quartile_chart(groups):
             fontweight="bold" if "Mediana" in lbl else "normal",
             arrowprops={"arrowstyle": "-", "color": col, "lw": 0.9, "alpha": 0.5},
         )
- 
+
     # IQR brace below the box
     ax.annotate("", xy=(q3, 0.55), xytext=(q1, 0.55),
                 arrowprops={"arrowstyle": "<->", "color": "#7FB3D3", "lw": 2.0})
     ax.text((q1 + q3) / 2, 0.46, f"IQR = {iqr:.1f} pp",
             fontsize=9, color="#5B8EB5", ha="center", va="top", fontstyle="italic")
- 
+
     ax.set_yticks([])
     ax.set_xlabel("Taxa de Resposta (%)", fontsize=11, color="#2C3E50")
     ax.set_title("Análise de Quartis — Distribuição da Taxa de Resposta",
@@ -512,16 +512,16 @@ def make_quartile_chart(groups):
     ax.set_facecolor("white")
     ax.xaxis.grid(True, linestyle="--", alpha=0.3)
     ax.set_axisbelow(True)
- 
+
     # Min / Max labels
     mn, mx = min(rates_all), max(rates_all)
     ax.text(mn - 0.5, 0.82, f"Min. {mn:.0f}%", fontsize=8.5, color="#7F8C8D", ha="right", va="center")
     ax.text(mx + 0.5, 0.82, f"Max. {mx:.0f}%", fontsize=8.5, color="#7F8C8D", ha="left",  va="center")
- 
+
     plt.tight_layout()
     return _fig_to_bytes(fig)
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  AI TEXT GENERATION
 # ──────────────────────────────────────────────
@@ -530,28 +530,28 @@ VARIANT_STYLES = {
     2: "Analítico-estratégico — identifica padrões, tendências e propõe melhorias operacionais concretas.",
     3: "Executivo e direto — sintetiza os pontos críticos com clareza e apresenta ações prioritárias.",
 }
- 
- 
+
+
 PREMISSAS_DEFAULT = (
     "A portaria/segurança recebeu um maior número de chamadas derivado à escassez de recursos humanos "
     "na área de secretariado devido a saída de funcionários. "
     "As interpretações, introdução e conclusão não devem mencionar nomes de grupos tipo GeralMXXX — apenas assuntos. "
     "Discriminar valores, justificar bem os dados e propor melhorias de forma construtiva e fundamentada."
 )
- 
- 
+
+
 def generate_ai_text(summary, groups, variant: int, api_key: str,
                      period_m=None, period_t=None, premissas: str = ""):
     # Use provided premissas or fall back to the default
     if not premissas or not premissas.strip():
         premissas = PREMISSAS_DEFAULT
     client = anthropic.Anthropic(api_key=api_key)
- 
+
     top10_priority = sorted(groups, key=lambda x: x["priority_index"], reverse=True)[:10]
     top10_volume   = sorted(groups, key=lambda x: x["presented"],       reverse=True)[:10]
     high_rate = [g for g in groups if g["response_rate"] >= 80]
     low_rate  = [g for g in groups if g["response_rate"] <  40]
- 
+
     def fmt_group(g):
         nm = g.get("label") or ""
         # Never expose internal group codes in the AI prompt
@@ -560,7 +560,7 @@ def generate_ai_text(summary, groups, variant: int, api_key: str,
         return (f"{nm}: {g['presented']} recebidas, "
                 f"{g['answered']} atendidas, {g['missed']} perdidas, "
                 f"taxa {g['response_rate']}%, índice prioridade {g['priority_index']}")
- 
+
     period_block = ""
     if period_m and period_t:
         top5_codes = [g["group"] for g in top10_priority[:5]]
@@ -575,22 +575,22 @@ def generate_ai_text(summary, groups, variant: int, api_key: str,
                 f"tarde — {pt.get('missed',0)} perdidas ({pt.get('response_rate',0):.0f}% atend.)"
             )
         period_block = "\nTOP 5 CRÍTICOS — MANHÃ vs. TARDE:\n" + "\n".join(lines)
- 
+
     data_block = f"""
 PERÍODO: {summary['start_date']} a {summary['end_date']}
 TOTAIS GLOBAIS:
   Recebidas: {summary['total_presented']} | Atendidas: {summary['total_answered']} | Perdidas: {summary['total_missed']}
   Taxa global: {summary['pct_answered']*100:.1f}% | Duração total: {summary['total_talking']} | Duração média: {summary['avg_talking']}
- 
+
 TOP 10 POR ÍNDICE DE PRIORIDADE:
 {chr(10).join(fmt_group(g) for g in top10_priority)}
- 
+
 TOP 10 POR VOLUME:
 {chr(10).join(fmt_group(g) for g in top10_volume)}
- 
+
 Grupos taxa ≥ 80% (bom desempenho): {len(high_rate)} | Grupos taxa < 40% (crítico): {len(low_rate)}
 Total de grupos com atividade: {len(groups)}
- 
+
 ANÁLISE DE QUARTIS DA TAXA DE RESPOSTA:
   Q1 (25%): {round(float(__import__("numpy").percentile([g["response_rate"] for g in groups], 25)),1)}%
   Mediana (Q2): {round(float(__import__("numpy").percentile([g["response_rate"] for g in groups], 50)),1)}%
@@ -598,7 +598,7 @@ ANÁLISE DE QUARTIS DA TAXA DE RESPOSTA:
   IQR: {round(float(__import__("numpy").percentile([g["response_rate"] for g in groups], 75)) - float(__import__("numpy").percentile([g["response_rate"] for g in groups], 25)),1)} pontos percentuais
 {period_block}
 """
- 
+
     has_period = bool(period_m and period_t)
     premissas_block = ""
     if premissas and premissas.strip():
@@ -615,14 +615,14 @@ ANÁLISE DE QUARTIS DA TAXA DE RESPOSTA:
             + "- Mantém sempre uma imagem clara e eficiente da instituição.\n"
         )
     prompt = f"""És um redator técnico especializado em relatórios institucionais de atendimento telefónico para organismos públicos portugueses. Escreve em português europeu correto, fluido e profissional.
- 
+
 ESTILO DE REDAÇÃO: {VARIANT_STYLES[variant]}
- 
+
 DADOS ESTATÍSTICOS DO PERÍODO:
 {data_block}
 {premissas_block}
 {"NOTA: Na secção 'analise', dedica um parágrafo específico às diferenças de desempenho entre manhã e tarde nos grupos críticos." if has_period else ""}
- 
+
 INSTRUÇÕES GERAIS:
 - CRÍTICO: NUNCA uses códigos de grupo como "GeralM509", "GeralM909", "GeralM219" ou similares. Refere SEMPRE os grupos pelo seu assunto/nome completo.
 - Cada secção deve ser coesa, bem estruturada e com argumentação clara.
@@ -631,14 +631,14 @@ INSTRUÇÕES GERAIS:
 - Não uses linguagem excessivamente técnica nem siglas sem explicação prévia.
 - As conclusões devem incluir pelo menos 2-3 recomendações práticas e específicas.
 - Inclui informação dos quartis da taxa de resposta para enquadrar o desempenho relativo dos grupos.
- 
+
 Devolve APENAS JSON válido (sem markdown, sem texto adicional):
 {{
   "introducao": "<3-4 parágrafos sep. por \\n\\n. Âmbito do relatório, período em análise, enquadramento institucional, síntese dos resultados globais e principais condicionantes do período.>",
   "analise":    "<5-7 parágrafos sep. por \\n\\n. Análise detalhada: desempenho global, grupos críticos com justificação dos dados, grupos de bom desempenho, padrões identificados{', diferenças de período manhã/tarde' if has_period else ''}. Fundamenta cada afirmação com números.>",
   "conclusoes": "<3-4 parágrafos sep. por \\n\\n. Síntese dos pontos críticos, recomendações específicas e acionáveis, perspetivas de melhoria e próximos passos sugeridos.>"
 }}"""
- 
+
     msg = client.messages.create(
         model=_CFG_MODEL,
         max_tokens=_CFG_TOKENS,
@@ -647,8 +647,8 @@ Devolve APENAS JSON válido (sem markdown, sem texto adicional):
     raw = msg.content[0].text.strip()
     raw = re.sub(r"^```json\s*","",raw); raw = re.sub(r"\s*```$","",raw)
     return json.loads(raw)
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  DOCX HELPERS
 # ──────────────────────────────────────────────
@@ -658,8 +658,8 @@ def _cell_shading(cell, hex_color: str):
     shd  = OxmlElement("w:shd")
     shd.set(qn("w:val"),"clear"); shd.set(qn("w:color"),"auto"); shd.set(qn("w:fill"),hex_color)
     tcPr.append(shd)
- 
- 
+
+
 def _para_border(para, side="bottom", color=HEX_NAVY, size=8):
     pPr = para._p.get_or_add_pPr()
     existing = pPr.find(qn("w:pBdr"))
@@ -672,8 +672,8 @@ def _para_border(para, side="bottom", color=HEX_NAVY, size=8):
     pStyle = pPr.find(qn("w:pStyle"))
     if pStyle is not None: pStyle.addnext(pBdr)
     else: pPr.insert(0, pBdr)
- 
- 
+
+
 def _add_run(para, text, bold=False, italic=False,
              size=10.5, color=None, font="Calibri"):
     r = para.add_run(text)
@@ -681,8 +681,8 @@ def _add_run(para, text, bold=False, italic=False,
     r.font.bold = bold; r.font.italic = italic
     if color: r.font.color.rgb = color
     return r
- 
- 
+
+
 def _section_heading(doc, number, title):
     p = doc.add_paragraph()
     p.paragraph_format.space_before = Pt(20)
@@ -691,8 +691,8 @@ def _section_heading(doc, number, title):
     _add_run(p, title,         bold=True, size=14, color=C_NAVY)
     _para_border(p, "bottom", HEX_BLUE, 6)
     return p
- 
- 
+
+
 def _body_paragraphs(doc, text: str):
     for chunk in text.strip().split("\n\n"):
         chunk = chunk.strip()
@@ -702,8 +702,8 @@ def _body_paragraphs(doc, text: str):
         p.paragraph_format.space_after  = Pt(8)
         p.paragraph_format.space_before = Pt(0)
         _add_run(p, chunk, size=10.5, color=C_TEXT)
- 
- 
+
+
 def _set_repeat_header(row):
     """Mark a table row to repeat as header on every page."""
     tr   = row._tr
@@ -711,8 +711,8 @@ def _set_repeat_header(row):
     tblH = OxmlElement("w:tblHeader")
     tblH.set(qn("w:val"), "true")
     trPr.append(tblH)
- 
- 
+
+
 def _cant_split(row):
     """Prevent a table row from being split across a page break."""
     tr   = row._tr
@@ -720,8 +720,8 @@ def _cant_split(row):
     cs   = OxmlElement("w:cantSplit")
     cs.set(qn("w:val"), "true")
     trPr.append(cs)
- 
- 
+
+
 def _table_header_row(table, headers, col_widths_cm, bg=HEX_NAVY):
     row = table.rows[0]
     for ci, (h, w) in enumerate(zip(headers, col_widths_cm)):
@@ -732,8 +732,8 @@ def _table_header_row(table, headers, col_widths_cm, bg=HEX_NAVY):
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         _add_run(p, h, bold=True, size=9, color=C_WHITE)
     _set_repeat_header(row)   # repeat on every page
- 
- 
+
+
 def _set_header_footer(doc, section):
     """Apply template header/footer images to the document section."""
     # ── Header ──
@@ -748,7 +748,7 @@ def _set_header_footer(doc, section):
     run = hp.add_run()
     if os.path.exists(HEADER_IMG):
         run.add_picture(HEADER_IMG, width=Cm(16.8))
- 
+
     # ── Footer ──
     footer = section.footer
     footer.is_linked_to_previous = False
@@ -761,8 +761,8 @@ def _set_header_footer(doc, section):
     run2 = fp.add_run()
     if os.path.exists(FOOTER_IMG):
         run2.add_picture(FOOTER_IMG, width=Cm(16.8))
- 
- 
+
+
 # ──────────────────────────────────────────────
 #  WORD REPORT GENERATION
 # ──────────────────────────────────────────────
@@ -770,7 +770,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
                       period_m=None, period_t=None, chart_period=None,
                       chart_quartile=None) -> bytes:
     doc = Document()
- 
+
     # ── Page geometry (A4, match template margins) ──
     sec = doc.sections[0]
     sec.page_width        = Cm(21)
@@ -781,39 +781,39 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
     sec.bottom_margin     = Cm(2.0)
     sec.header_distance   = Cm(1.2)
     sec.footer_distance   = Cm(0.8)
- 
+
     # ── Default style ──
     normal = doc.styles["Normal"]
     normal.font.name = "Calibri"
     normal.font.size = Pt(10.5)
     normal.font.color.rgb = C_TEXT
- 
+
     # ── Template header/footer ──
     _set_header_footer(doc, sec)
- 
+
     # ══════════════════════════════════
     #  CAPA
     # ══════════════════════════════════
     for _ in range(3):
         doc.add_paragraph()
- 
+
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     _add_run(p, "RELATÓRIO DE ATENDIMENTO", bold=True, size=26, color=C_NAVY)
- 
+
     p2 = doc.add_paragraph()
     p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p2.paragraph_format.space_after = Pt(4)
     _add_run(p2, "Análise de Desempenho e Reencaminhamento de Chamadas",
              italic=True, size=13, color=C_BLUE)
     _para_border(p2, "bottom", HEX_BLUE, 6)
- 
+
     p3 = doc.add_paragraph()
     p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
     p3.paragraph_format.space_after = Pt(28)
     _add_run(p3, f"Período de Referência: {summary['start_date']} a {summary['end_date']}",
              size=11, color=C_GREY)
- 
+
     # KPI strip
     kpi_items = [
         ("Chamadas\nRecebidas",  str(summary["total_presented"]), HEX_NAVY),
@@ -835,14 +835,14 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
         lp = lc.paragraphs[0]; lp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         _add_run(lp, lbl, size=8.5, color=RGBColor(0xCC, 0xE5, 0xFF))
     doc.add_paragraph()
- 
+
     # ══════════════════════════════════
     #  SECÇÃO 1 — INTRODUÇÃO
     # ══════════════════════════════════
     doc.add_page_break()
     _section_heading(doc, 1, "Introdução")
     _body_paragraphs(doc, ai_text["introducao"])
- 
+
     # ══════════════════════════════════
     #  SECÇÃO 2 — RESUMO ESTATÍSTICO
     # ══════════════════════════════════
@@ -868,7 +868,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
         _add_run(cells[0].paragraphs[0], lbl2, size=10, color=C_TEXT)
         _add_run(cells[1].paragraphs[0], val,  size=10, bold=True, color=C_NAVY)
     doc.add_paragraph()
- 
+
     # ══════════════════════════════════
     #  SECÇÃO 3 — ANÁLISE POR GRUPO
     # ══════════════════════════════════
@@ -879,7 +879,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
              "A vermelho os grupos com índice crítico (> 20).",
              italic=True, size=9.5, color=C_GREY)
     p_note.paragraph_format.space_after = Pt(8)
- 
+
     col_hdrs = ["Assunto / Tema", "Chamadas Recebidas", "Chamadas Atendidas", "Chamadas Perdidas", "Taxa de Resposta", "Índice de Prioridade"]
     col_ws   = [7.5, 2.0, 2.0, 2.0, 2.0, 2.2]
     dtbl = doc.add_table(rows=len(groups)+1, cols=6)
@@ -901,7 +901,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT if ci==0 else WD_ALIGN_PARAGRAPH.CENTER
             color = C_RED if (critical and ci==5) else C_TEXT
             _add_run(p, val, bold=(critical and ci==5), size=8.5 if ci==0 else 9, color=color)
- 
+
     doc.add_paragraph()
     p_pi = doc.add_paragraph()
     p_pi.paragraph_format.left_indent  = Cm(0.5)
@@ -911,7 +911,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
     _add_run(p_pi, "Índice de Prioridade", bold=True, size=10, color=C_NAVY)
     _add_run(p_pi, "  ·  Fórmula: Chamadas Perdidas × (1 − Taxa de Resposta)",
              italic=True, size=9.5, color=C_GREY)
- 
+
     # ══════════════════════════════════
     #  SECÇÃO 4 — GRÁFICOS (existentes)
     # ══════════════════════════════════
@@ -931,7 +931,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
         pi.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pi.paragraph_format.space_after = Pt(14)
         pi.add_run().add_picture(io.BytesIO(chart_bytes), width=width)
- 
+
     # Figura 5 — Análise de Quartis
     if chart_quartile:
         pc_q = doc.add_paragraph()
@@ -943,7 +943,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
         pi_q.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pi_q.paragraph_format.space_after = Pt(14)
         pi_q.add_run().add_picture(io.BytesIO(chart_quartile), width=Inches(6.3))
- 
+
         # Box with quartile legend
         p_ql = doc.add_paragraph()
         p_ql.paragraph_format.left_indent  = Cm(0.5)
@@ -955,7 +955,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
                  "O boxplot mostra a mediana, os quartis Q1 e Q3, a amplitude interquartil (IQR) "
                  "e a distribuição individual de todos os grupos (pontos sobrepostos).",
                  italic=True, size=9, color=C_GREY)
- 
+
     # ══════════════════════════════════
     #  SECÇÃO 5 — ANÁLISE MANHÃ vs TARDE  (opcional)
     # ══════════════════════════════════
@@ -963,22 +963,22 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
     if period_m and period_t and chart_period:
         _section_heading(doc, sec_num, "Análise por Período — Manhã vs. Tarde")
         sec_num += 1
- 
+
         p_intro = doc.add_paragraph()
         _add_run(p_intro,
                  "A tabela e gráfico seguintes detalham os cinco grupos com maior Índice de Prioridade, "
                  "discriminando o volume de chamadas recebidas, perdidas e a taxa de resposta por período do dia.",
                  size=10.5, color=C_TEXT)
         p_intro.paragraph_format.space_after = Pt(10)
- 
+
         top5 = groups[:5]
- 
+
         # Table: top 5 × manhã/tarde
         pt_hdrs = ["Assunto / Tema",
                    "Manhã — Recebidas", "Manhã — Perdidas", "Manhã — Taxa de Resposta",
                    "Tarde — Recebidas", "Tarde — Perdidas", "Tarde — Taxa de Resposta"]
         pt_ws   = [5.2, 1.7, 1.7, 1.7, 1.7, 1.7, 1.7]
- 
+
         ptbl = doc.add_table(rows=len(top5)+1, cols=7)
         ptbl.style = "Table Grid"; ptbl.alignment = WD_TABLE_ALIGNMENT.CENTER
         # Bicolor header: manhã columns amber, tarde columns navy
@@ -989,7 +989,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
             _cell_shading(cell, bg)
             p = cell.paragraphs[0]; p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             _add_run(p, h, bold=True, size=8.5, color=C_WHITE)
- 
+
         for ri, g in enumerate(top5):
             bg  = HEX_LGREY if ri%2==0 else HEX_WHITE
             row = ptbl.rows[ri+1]
@@ -1008,7 +1008,7 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
                 p = cell.paragraphs[0]
                 p.alignment = WD_ALIGN_PARAGRAPH.LEFT if ci==0 else WD_ALIGN_PARAGRAPH.CENTER
                 _add_run(p, val, size=8.5 if ci==0 else 9, color=C_TEXT)
- 
+
         doc.add_paragraph()
         pc5 = doc.add_paragraph()
         pc5.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -1019,25 +1019,25 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
         pi5.alignment = WD_ALIGN_PARAGRAPH.CENTER
         pi5.paragraph_format.space_after = Pt(14)
         pi5.add_run().add_picture(io.BytesIO(chart_period), width=Inches(6.3))
- 
+
     # ══════════════════════════════════
     #  SECÇÃO N — ANÁLISE
     # ══════════════════════════════════
     _section_heading(doc, sec_num, "Análise e Interpretação dos Dados")
     _body_paragraphs(doc, ai_text["analise"])
     sec_num += 1
- 
+
     # ══════════════════════════════════
     #  SECÇÃO N+1 — CONCLUSÕES
     # ══════════════════════════════════
     _section_heading(doc, sec_num, "Conclusões e Recomendações")
     _body_paragraphs(doc, ai_text["conclusoes"])
- 
+
     # ── Serialize + fix python-docx zoom bug ──
     buf = io.BytesIO()
     doc.save(buf)
     raw = buf.getvalue()
- 
+
     import zipfile as _zf
     fixed = io.BytesIO()
     with _zf.ZipFile(io.BytesIO(raw), "r") as zin, \
@@ -1051,44 +1051,491 @@ def build_word_report(summary, groups, ai_text: dict, charts: list, variant_num:
                 data = txt.encode("utf-8")
             zout.writestr(item, data)
     return fixed.getvalue()
- 
- 
+
+
+
 # ──────────────────────────────────────────────
-#  STREAMLIT UI
+#  STREAMLIT UI  —  redesign v2
 # ──────────────────────────────────────────────
+
+# ── CSS & animations injected once ──
+_CSS = """ <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+
+
+
+/* ── reset & root ── */
+:root {
+  --navy:   #1B3A5C;
+  --blue:   #4A90D9;
+  --teal:   #2E86AB;
+  --red:    #E84855;
+  --green:  #27AE60;
+  --amber:  #F39C12;
+  --slate:  #2C3E50;
+  --mist:   #EBF5FB;
+  --ghost:  #F8FAFC;
+  --border: #D6EAF8;
+  --shadow: 0 4px 24px rgba(27,58,92,.10);
+  --shadow-lg: 0 12px 48px rgba(27,58,92,.18);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+html, body, [class*="css"] {
+  font-family: 'DM Sans', sans-serif !important;
+}
+
+/* ── page background ── */
+.stApp {
+  background:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(74,144,217,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(46,134,171,.06) 0%, transparent 55%),
+    #F8FAFC;
+}
+
+/* ── main container ── */
+.block-container {
+  max-width: 900px !important;
+  padding: 2.5rem 2rem 4rem !important;
+}
+
+/* ── section fade-in ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(74,144,217,.35); }
+  70%  { box-shadow: 0 0 0 10px rgba(74,144,217,0); }
+  100% { box-shadow: 0 0 0 0 rgba(74,144,217,0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* all direct children of main animate in */
+section.main > div > div > div > div {
+  animation: fadeUp .5s ease both;
+}
+
+/* ── hero header ── */
+.dgadr-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, #2563a8 60%, var(--teal) 100%);
+  border-radius: var(--radius);
+  padding: 2.4rem 2.4rem 2rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+.dgadr-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 85% 20%, rgba(255,255,255,.12) 0%, transparent 40%),
+    radial-gradient(circle at 15% 80%, rgba(46,134,171,.3) 0%, transparent 35%);
+  pointer-events: none;
+}
+.dgadr-hero::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.08);
+  pointer-events: none;
+}
+.hero-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-bottom: .5rem;
+}
+.hero-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.1rem;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.15;
+  margin-bottom: .5rem;
+}
+.hero-title em { font-style: italic; color: rgba(255,255,255,.75); }
+.hero-sub {
+  font-size: .9rem;
+  color: rgba(255,255,255,.65);
+  font-weight: 300;
+  margin-top: .4rem;
+  max-width: 500px;
+  line-height: 1.55;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 100px;
+  padding: .25rem .75rem;
+  font-size: .75rem;
+  color: rgba(255,255,255,.85);
+  font-weight: 500;
+  margin-top: 1rem;
+  backdrop-filter: blur(4px);
+}
+.hero-dot {
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease infinite;
+  flex-shrink: 0;
+}
+
+/* ── section titles ── */
+.sec-title {
+  display: flex; align-items: center; gap: .6rem;
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--navy);
+  margin: 1.8rem 0 .9rem;
+  padding-bottom: .6rem;
+  border-bottom: 2px solid var(--border);
+  animation: fadeUp .4s ease both;
+}
+.sec-title .icon {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .95rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(74,144,217,.35);
+}
+
+/* ── KPI cards ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .85rem;
+  margin: 1rem 0;
+  animation: fadeUp .5s .1s ease both;
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.kpi-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1rem .9rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease;
+  animation: countUp .5s ease both;
+  box-shadow: 0 2px 12px rgba(27,58,92,.07);
+}
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(27,58,92,.14);
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.kpi-card.navy::before  { background: var(--navy); }
+.kpi-card.teal::before  { background: var(--teal); }
+.kpi-card.red::before   { background: var(--red); }
+.kpi-card.green::before { background: var(--green); }
+.kpi-card.amber::before { background: var(--amber); }
+.kpi-val {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  line-height: 1.1;
+  margin-bottom: .2rem;
+}
+.kpi-card.navy  .kpi-val { color: var(--navy); }
+.kpi-card.teal  .kpi-val { color: var(--teal); }
+.kpi-card.red   .kpi-val { color: var(--red); }
+.kpi-card.green .kpi-val { color: var(--green); }
+.kpi-card.amber .kpi-val { color: var(--amber); }
+.kpi-lbl {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* ── upload zone ── */
+[data-testid="stFileUploader"] {
+  border-radius: var(--radius) !important;
+  transition: all .2s ease;
+}
+[data-testid="stFileUploadDropzone"] {
+  border: 2px dashed var(--border) !important;
+  border-radius: var(--radius) !important;
+  background: var(--ghost) !important;
+  transition: border-color .2s ease, background .2s ease !important;
+}
+[data-testid="stFileUploadDropzone"]:hover {
+  border-color: var(--blue) !important;
+  background: var(--mist) !important;
+}
+
+/* ── textarea ── */
+.stTextArea textarea {
+  border-radius: var(--radius-sm) !important;
+  border: 1.5px solid var(--border) !important;
+  background: #fff !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .9rem !important;
+  color: var(--slate) !important;
+  transition: border-color .2s ease, box-shadow .2s ease !important;
+  resize: vertical !important;
+}
+.stTextArea textarea:focus {
+  border-color: var(--blue) !important;
+  box-shadow: 0 0 0 3px rgba(74,144,217,.15) !important;
+}
+
+/* ── radio ── */
+[data-testid="stRadio"] label {
+  font-size: .88rem !important;
+  color: var(--slate) !important;
+}
+
+/* ── generate button ── */
+.stButton > button {
+  background: linear-gradient(135deg, var(--navy) 0%, #2563a8 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: var(--radius) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  padding: .75rem 2.2rem !important;
+  width: 100% !important;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease !important;
+  box-shadow: 0 4px 18px rgba(27,58,92,.3) !important;
+  letter-spacing: .01em !important;
+}
+.stButton > button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 28px rgba(27,58,92,.38) !important;
+  opacity: .95 !important;
+}
+.stButton > button:active { transform: translateY(0) !important; }
+
+/* ── download buttons ── */
+.stDownloadButton > button {
+  background: #fff !important;
+  color: var(--navy) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: .9rem !important;
+  padding: .65rem 1.4rem !important;
+  width: 100% !important;
+  transition: all .2s ease !important;
+  box-shadow: 0 2px 8px rgba(27,58,92,.07) !important;
+  text-align: left !important;
+}
+.stDownloadButton > button:hover {
+  background: var(--mist) !important;
+  border-color: var(--blue) !important;
+  transform: translateX(4px) !important;
+  box-shadow: 0 4px 16px rgba(74,144,217,.2) !important;
+}
+
+/* ── alerts & success ── */
+[data-testid="stAlert"] {
+  border-radius: var(--radius) !important;
+  border: none !important;
+  animation: slideInLeft .35s ease both !important;
+}
+div[data-testid="stSuccess"] {
+  background: linear-gradient(90deg, #f0fdf4, #ecfdf5) !important;
+  border-left: 4px solid var(--green) !important;
+  border-radius: var(--radius) !important;
+}
+
+/* ── expander (API key) ── */
+[data-testid="stExpander"] {
+  border: 1.5px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(27,58,92,.06) !important;
+}
+
+/* ── divider ── */
+hr { border-color: var(--border) !important; margin: 1.5rem 0 !important; }
+
+/* ── metric containers (fallback) ── */
+div[data-testid="metric-container"] {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1rem !important;
+  box-shadow: 0 2px 10px rgba(27,58,92,.07);
+  transition: box-shadow .2s ease;
+}
+div[data-testid="metric-container"]:hover {
+  box-shadow: 0 6px 20px rgba(27,58,92,.12);
+}
+
+/* ── spinner ── */
+[data-testid="stSpinner"] {
+  background: rgba(255,255,255,.92) !important;
+  border-radius: var(--radius) !important;
+  padding: 1rem !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ── info box ── */
+.info-box {
+  background: linear-gradient(90deg, var(--mist), #f0f9ff);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--blue);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  font-size: .88rem;
+  color: var(--slate);
+  line-height: 1.6;
+  margin: .5rem 0 1rem;
+  animation: fadeIn .4s ease both;
+}
+
+/* ── variant badges ── */
+.variant-grid {
+  display: flex; gap: .6rem; margin-top: .5rem; flex-wrap: wrap;
+  animation: fadeIn .4s .2s ease both;
+}
+.variant-badge {
+  display: flex; align-items: center; gap: .4rem;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 100px;
+  padding: .3rem .85rem;
+  font-size: .78rem; font-weight: 600;
+  color: var(--navy);
+  transition: all .18s ease;
+}
+.variant-badge:hover { border-color: var(--blue); background: var(--mist); }
+.vb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── download section ── */
+.dl-header {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem; color: var(--navy);
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.dl-hint {
+  font-size: .8rem; color: #94a3b8;
+  margin-top: .9rem; text-align: center;
+  font-style: italic;
+}
+
+/* ── progress steps ── */
+.step-row {
+  display: flex; gap: .5rem; align-items: center;
+  margin: .35rem 0;
+  font-size: .85rem; color: var(--slate);
+  animation: slideInLeft .3s ease both;
+}
+.step-icon {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; flex-shrink: 0;
+  font-weight: 700;
+}
+.step-icon.done { background: #dcfce7; color: var(--green); }
+.step-icon.run  { background: #dbeafe; color: var(--blue);
+  animation: pulse-ring 1.5s ease infinite; }
+
+/* ── period badge ── */
+.period-ok {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 100px; padding: .2rem .7rem;
+  font-size: .78rem; color: #15803d; font-weight: 500;
+}
+
+/* ── footer ── */
+.app-footer {
+  text-align: center; margin-top: 3rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: .75rem; color: #94a3b8;
+  animation: fadeIn 1s ease both;
+}
+.app-footer strong { color: var(--navy); }
+</style>
+"""
+
+
+def _kpi_card(value, label, colour):
+    return f"""<div class="kpi-card {colour}">
+  <div class="kpi-val">{value}</div>
+  <div class="kpi-lbl">{label}</div>
+</div>"""
+
+
+def _sec_title(icon, text):
+    return f"""<div class="sec-title"><span class="icon">{icon}</span>{text}</div>"""
+
+
 def main():
     st.set_page_config(
-        page_title="Gerador de Relatório de Atendimento",
-        page_icon="📞", layout="centered",
+        page_title="Relatório de Atendimento · DGADR",
+        page_icon="📞",
+        layout="centered",
+        initial_sidebar_state="collapsed",
     )
+    st.markdown(_CSS, unsafe_allow_html=True)
+
+    # ══════════════════════════
+    #  HERO
+    # ══════════════════════════
     st.markdown("""
-    <style>
-    .block-container { max-width: 860px; padding-top: 2rem; }
-    h1 { color: #1B3A5C; letter-spacing: -0.5px; }
-    h3 { color: #4A90D9; }
-    .stDownloadButton > button {
-        background: #1B3A5C; color: white; border: none;
-        border-radius: 6px; font-weight: 600; padding: 0.55rem 1.6rem;
-    }
-    .stDownloadButton > button:hover { background: #4A90D9; }
-    .stButton > button {
-        background: #1B3A5C; color: white; border: none;
-        border-radius: 6px; font-weight: 600; padding: 0.55rem 1.6rem;
-    }
-    .stButton > button:hover { background: #4A90D9; }
-    div[data-testid="metric-container"] {
-        background: #F0F5FA; border-radius: 8px; padding: 1rem; border: 1px solid #D6EAF8;
-    }
-    </style>
+    <div class="dgadr-hero">
+      <div class="hero-label">DGADR · Serviço de Atendimento Telefónico</div>
+      <div class="hero-title">Gerador de<br><em>Relatório Automático</em></div>
+      <div class="hero-sub">
+        Carregue os ficheiros de dados da centralita e obtenha um relatório
+        Word profissional com análise, gráficos e interpretação por IA.
+      </div>
+      <div class="hero-badge">
+        <span class="hero-dot"></span>
+        Powered by Claude · Anthropic
+      </div>
+    </div>
     """, unsafe_allow_html=True)
- 
-    st.title("📞 Gerador de Relatório de Atendimento")
-    st.markdown(
-        "Carregue o ficheiro Excel de dados globais (e opcionalmente os dados "
-        "de manhã e de tarde) para gerar um relatório profissional Word com análise por IA."
-    )
- 
-    # ── API Key — lida de config.py, env var, ou campo manual ──
+
+    # ══════════════════════════
+    #  API KEY
+    # ══════════════════════════
     api_key = _resolve_api_key()
     if not api_key:
         with st.expander("🔑 Configuração da API Key", expanded=True):
@@ -1096,48 +1543,73 @@ def main():
                 "Anthropic API Key",
                 type="password",
                 placeholder="sk-ant-...",
-                help="Pode pré-configurar em config.py para não precisar introduzir manualmente.",
+                help="Configure em Streamlit Cloud → Settings → Secrets  ou  em config.py localmente.",
             )
-            st.caption("Para pré-configurar permanentemente, edite `config.py` e defina `ANTHROPIC_API_KEY`.")
- 
-    st.divider()
- 
-    # ── Modo de input ──
-    st.markdown("### 📂 Ficheiros de Dados")
+            st.caption("💡 Streamlit Cloud: Settings → Secrets → `ANTHROPIC_API_KEY = \"sk-ant-...\"`")
+
+    # ══════════════════════════
+    #  FICHEIROS
+    # ══════════════════════════
+    st.markdown(_sec_title("📂", "Ficheiros de Dados"), unsafe_allow_html=True)
+
     mode = st.radio(
         "Modo de análise:",
-        ["1 ficheiro (dados globais)", "3 ficheiros (global + manhã + tarde)"],
+        ["1 ficheiro  —  dados globais", "3 ficheiros  —  global + manhã + tarde"],
         horizontal=True,
-        help="3 ficheiros ativa a análise de período nos 5 grupos mais críticos.",
+        label_visibility="collapsed",
     )
     three_mode = "3 ficheiros" in mode
- 
-    col_main, col_m, col_t = st.columns([2, 1, 1]) if three_mode else [st.container(), None, None]
- 
+
+    st.markdown(
+        f"""<div class="info-box">
+        {"📊 Modo completo — os 5 grupos mais críticos serão analisados por período (manhã e tarde)."
+          if three_mode else
+          "📄 Modo simples — análise global do período selecionado."}
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+    if three_mode:
+        col_main, col_m, col_t = st.columns([2, 1, 1])
+    else:
+        col_main = st.container()
+        col_m = col_t = None
+
     with col_main:
         uploaded_main = st.file_uploader(
-            "Ficheiro global (.xlsx)", type=["xlsx"],
+            "Ficheiro global (.xlsx)",
+            type=["xlsx"],
             help="Exportação completa do sistema de centralita.",
         )
- 
     uploaded_m = uploaded_t = None
     if three_mode:
         with col_m:
             uploaded_m = st.file_uploader("Manhã (.xlsx)", type=["xlsx"])
         with col_t:
             uploaded_t = st.file_uploader("Tarde (.xlsx)", type=["xlsx"])
- 
+
     if not uploaded_main:
-        st.info("👆 Carregue pelo menos o ficheiro de dados globais para começar.")
+        st.markdown(
+            '<div class="info-box" style="border-left-color:#F39C12;">👆 '
+            'Carregue o ficheiro Excel de dados globais para começar.</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            '<div class="app-footer">Relatório de Atendimento Telefónico · '
+            '<strong>DGADR</strong> · Gerado com Claude AI</div>',
+            unsafe_allow_html=True,
+        )
         return
- 
-    # ── Parse ──
-    with st.spinner("A ler os ficheiros…"):
+
+    # ══════════════════════════
+    #  PARSE + KPIs
+    # ══════════════════════════
+    with st.spinner("A processar ficheiros…"):
         try:
             summary, groups = parse_excel(uploaded_main)
         except Exception as e:
             st.error(f"Erro ao ler o ficheiro global: {e}"); return
- 
+
         period_m = period_t = None
         if three_mode and uploaded_m and uploaded_t:
             try:
@@ -1145,101 +1617,201 @@ def main():
                 period_t = parse_excel_period(uploaded_t, "Tarde")
             except Exception as e:
                 st.warning(f"Erro nos ficheiros de período: {e}")
-                period_m = period_t = None
- 
-    st.success(
-        f"✅ **{summary['total_presented']}** chamadas  |  "
-        f"Período: **{summary['start_date']}** a **{summary['end_date']}**"
-        + (f"  |  📊 Dados manhã/tarde carregados" if period_m else "")
-    )
- 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Recebidas",     summary["total_presented"])
-    c2.metric("Atendidas",     summary["total_answered"])
-    c3.metric("Perdidas",      summary["total_missed"])
-    c4.metric("Taxa Resposta", f"{summary['pct_answered']*100:.1f}%")
- 
-    st.divider()
- 
-    # ── Premissas / Contexto ──
-    st.markdown("### 📝 Premissas e Contexto do Relatório")
+
+    # Period badge
+    period_badge = ""
+    if period_m:
+        period_badge = '<span class="period-ok">📊 Dados manhã/tarde carregados</span>'
+
     st.markdown(
-        "Introduza aqui o contexto específico do período em análise — "
-        "condicionantes, explicações para desvios, observações relevantes. "
-        "A IA usará esta informação para fundamentar e contextualizar a narrativa do relatório."
+        f'<div style="margin:.8rem 0 .2rem;font-size:.85rem;color:#64748b;">'
+        f'<strong style="color:#1B3A5C;">{summary["start_date"]}</strong> '
+        f'— <strong style="color:#1B3A5C;">{summary["end_date"]}</strong>'
+        f'&emsp;·&emsp;{summary["total_presented"]} chamadas processadas'
+        f'&emsp;{period_badge}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # KPI cards
+    taxa = summary["pct_answered"] * 100
+    taxa_colour = "green" if taxa >= 70 else "amber" if taxa >= 50 else "red"
+    st.markdown(
+        f"""<div class="kpi-grid">
+        {_kpi_card(summary["total_presented"], "Recebidas", "navy")}
+        {_kpi_card(summary["total_answered"],  "Atendidas", "teal")}
+        {_kpi_card(summary["total_missed"],    "Perdidas",  "red")}
+        {_kpi_card(f"{taxa:.1f}%",             "Taxa de Resposta", taxa_colour)}
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+    # ══════════════════════════
+    #  PREMISSAS
+    # ══════════════════════════
+    st.markdown(_sec_title("📝", "Contexto e Premissas"), unsafe_allow_html=True)
+    st.markdown(
+        '<div class="info-box">Descreva o contexto específico do período — '
+        'condicionantes operacionais, saídas de recursos, observações relevantes. '
+        'A IA incorporará esta informação na narrativa do relatório de forma profissional.</div>',
+        unsafe_allow_html=True,
     )
     premissas = st.text_area(
-        "Premissas / Contexto (opcional)",
-        height=180,
+        "premissas",
+        height=150,
         placeholder=(
-            "Exemplo:\n"
-            "- A linha de apoio recebeu um volume superior de chamadas devido à saída de recursos humanos "
-            "de alguns secretariados.\n"
-            "- O grupo X registou menor taxa de resposta por razões de reestruturação interna.\n"
-            "- Propor medidas para reforço do atendimento nos períodos da tarde."
+            "Ex: A portaria recebeu um volume superior de chamadas devido à saída de "
+            "recursos humanos de alguns secretariados...\n"
+            "Ex: Propor medidas de melhoria para o período da tarde..."
         ),
-        help="O texto aqui inserido é usado pela IA para contextualizar a análise e as conclusões. "
-             "Seja específico e objetivo — mais contexto = análise mais fundamentada.",
         label_visibility="collapsed",
     )
     if premissas.strip():
-        st.success(f"✏️ Contexto registado ({len(premissas.split())} palavras) — será incorporado na narrativa.")
- 
-    st.divider()
- 
-    # ── Opções ──
-    st.markdown("### ⚙️ Opções de Geração")
+        wc = len(premissas.split())
+        st.markdown(
+            f'<div style="font-size:.78rem;color:#15803d;margin-top:.3rem;">'
+            f'✓ Contexto registado &nbsp;·&nbsp; {wc} palavras</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ══════════════════════════
+    #  OPÇÕES DE GERAÇÃO
+    # ══════════════════════════
+    st.markdown(_sec_title("⚙️", "Opções de Geração"), unsafe_allow_html=True)
+
     n_variants = st.radio(
-        "Número de hipóteses de relatório:",
-        options=[1, 2, 3], horizontal=True,
-        help="Cada hipótese tem um estilo de redação diferente.",
+        "Hipóteses:",
+        options=[1, 2, 3],
+        horizontal=True,
+        help="Cada hipótese usa um estilo de redação diferente.",
     )
-    variant_labels = {1:"Técnico e Formal", 2:"Analítico-Estratégico", 3:"Executivo e Conciso"}
+    variant_labels = {
+        1: ("Técnico e Formal",        "#1B3A5C"),
+        2: ("Analítico-Estratégico",   "#2E86AB"),
+        3: ("Executivo e Conciso",     "#F39C12"),
+    }
     if n_variants > 1:
-        st.caption(" · ".join(f"H{i}: **{variant_labels[i]}**" for i in range(1, n_variants+1)))
- 
-    if st.button("🚀 Gerar Relatório" + ("s" if n_variants > 1 else "")):
-        if not api_key:
-            st.error("Por favor insira a Anthropic API Key antes de continuar."); return
- 
-        with st.spinner("A gerar gráficos…"):
-            try:
-                charts = make_charts(summary, groups)
-                chart_quartile = make_quartile_chart(groups)
-                chart_period = None
-                if period_m and period_t:
-                    chart_period = make_period_chart(groups[:5], period_m, period_t)
-            except Exception as e:
-                st.error(f"Erro ao gerar gráficos: {e}"); return
- 
-        results = []
-        for i in range(1, n_variants+1):
-            lbl = variant_labels[i]
-            with st.spinner(f"A gerar Hipótese {i} ({lbl}) com IA…"):
-                try:
-                    ai_text   = generate_ai_text(summary, groups, i, api_key, period_m, period_t, premissas)
-                    doc_bytes = build_word_report(summary, groups, ai_text, charts, i,
-                                                  period_m, period_t, chart_period,
-                                                  chart_quartile)
-                    results.append((i, lbl, doc_bytes))
-                except Exception as e:
-                    st.error(f"Erro na hipótese {i}: {e}"); return
- 
-        st.success("✅ Relatório(s) gerado(s) com sucesso!")
-        st.divider()
-        st.markdown("### ⬇️ Descarregar")
-        period_str = f"{summary['start_date'].replace('/','')}-{summary['end_date'].replace('/','')}"
-        for i, lbl, doc_bytes in results:
-            fname = f"Relatorio_Atendimento_{period_str}_H{i}_{lbl.replace(' ','_')}.docx"
+        badges = "".join(
+            f'<div class="variant-badge">'
+            f'<span class="vb-dot" style="background:{variant_labels[i][1]};"></span>'
+            f'H{i} — {variant_labels[i][0]}</div>'
+            for i in range(1, n_variants + 1)
+        )
+        st.markdown(f'<div class="variant-grid">{badges}</div>', unsafe_allow_html=True)
+
+    st.markdown("<div style='height:.6rem'></div>", unsafe_allow_html=True)
+
+    # ══════════════════════════
+    #  GENERATE BUTTON
+    # ══════════════════════════
+    label_btn = f"🚀  Gerar {'Relatórios' if n_variants > 1 else 'Relatório'}"
+    if not st.button(label_btn, use_container_width=True):
+        st.markdown(
+            '<div class="app-footer">Relatório de Atendimento Telefónico · '
+            '<strong>DGADR</strong> · Gerado com Claude AI</div>',
+            unsafe_allow_html=True,
+        )
+        return
+
+    if not api_key:
+        st.error("⚠️ Configure a Anthropic API Key antes de continuar.")
+        return
+
+    # ── Generation pipeline with step indicators ──
+    steps_ph = st.empty()
+    results  = []
+
+    def _show_steps(done=0, current_label=""):
+        all_steps = [
+            "Gráficos e visualizações",
+        ] + [f"Hipótese {i} — {variant_labels[i][0]}" for i in range(1, n_variants + 1)]
+        html = '<div style="background:#fff;border:1px solid #D6EAF8;border-radius:14px;padding:1.1rem 1.3rem;margin:.8rem 0;">'
+        html += '<div style="font-size:.8rem;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8;margin-bottom:.7rem;">A processar…</div>'
+        for idx, s in enumerate(all_steps):
+            if idx < done:
+                ico = '<span class="step-icon done">✓</span>'
+                clr = "#64748b"
+            elif idx == done:
+                ico = '<span class="step-icon run">⋯</span>'
+                clr = "#1B3A5C"
+            else:
+                ico = '<span class="step-icon" style="background:#f1f5f9;color:#cbd5e1;">○</span>'
+                clr = "#cbd5e1"
+            html += f'<div class="step-row">{ico}<span style="color:{clr}">{s}</span></div>'
+        html += '</div>'
+        steps_ph.markdown(html, unsafe_allow_html=True)
+
+    _show_steps(0)
+
+    # Charts
+    try:
+        charts        = make_charts(summary, groups)
+        chart_quartile = make_quartile_chart(groups)
+        chart_period   = make_period_chart(groups[:5], period_m, period_t) if period_m and period_t else None
+    except Exception as e:
+        st.error(f"Erro ao gerar gráficos: {e}"); return
+
+    # Variants
+    for i in range(1, n_variants + 1):
+        _show_steps(i)
+        lbl = variant_labels[i][0]
+        try:
+            ai_text   = generate_ai_text(summary, groups, i, api_key, period_m, period_t, premissas)
+            doc_bytes = build_word_report(summary, groups, ai_text, charts, i,
+                                          period_m, period_t, chart_period, chart_quartile)
+            results.append((i, lbl, doc_bytes))
+        except Exception as e:
+            st.error(f"Erro na hipótese {i}: {e}"); return
+
+    steps_ph.empty()
+
+    # ══════════════════════════
+    #  SUCCESS + DOWNLOAD
+    # ══════════════════════════
+    st.markdown(
+        '<div style="background:linear-gradient(90deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;'
+        'border-left:4px solid #22c55e;border-radius:14px;padding:1rem 1.3rem;margin:.8rem 0;'
+        'display:flex;align-items:center;gap:.6rem;">'
+        '<span style="font-size:1.3rem;">✅</span>'
+        '<span style="font-weight:600;color:#15803d;">Relatório gerado com sucesso!</span>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(_sec_title("⬇️", "Descarregar"), unsafe_allow_html=True)
+
+    period_str = f"{summary['start_date'].replace('/','')}-{summary['end_date'].replace('/','')}"
+    for i, lbl, doc_bytes in results:
+        fname = f"Relatorio_Atendimento_{period_str}_H{i}_{lbl.replace(' ','_')}.docx"
+        col_dl, col_info = st.columns([3, 1])
+        with col_dl:
             st.download_button(
-                label=f"📄 Hipótese {i} — {lbl}", data=doc_bytes,
+                label=f"📄  Hipótese {i} — {lbl}",
+                data=doc_bytes,
                 file_name=fname,
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 key=f"dl_{i}",
+                use_container_width=True,
             )
-        if n_variants > 1:
-            st.caption("Descarregue todas as hipóteses e escolha a que melhor se adapta.")
- 
- 
+        with col_info:
+            st.markdown(
+                f'<div style="display:flex;align-items:center;height:100%;'
+                f'font-size:.78rem;color:#94a3b8;padding-left:.3rem;">'
+                f'{round(len(doc_bytes)/1024)} KB · .docx</div>',
+                unsafe_allow_html=True,
+            )
+
+    if n_variants > 1:
+        st.markdown(
+            '<div class="dl-hint">Descarregue todas as hipóteses e escolha a que melhor se adapta ao relatório.</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        '<div class="app-footer">Relatório de Atendimento Telefónico · '
+        '<strong>DGADR</strong> · Gerado com Claude AI</div>',
+        unsafe_allow_html=True,
+    )
+
+
 if __name__ == "__main__":
     main()
